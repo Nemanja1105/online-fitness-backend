@@ -14,19 +14,19 @@ public class RegisterRequestDTO {
     private String username;
     @NotBlank
     @Size(min=8)
-    @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d).{8,}$", message="Password must contain at least 8 characters, of which at least one number and one capital letter!")
+    @Pattern(regexp = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}", message="Password must contain at least 8 characters, of which at least one number and one capital letter!")
     private String password;
     @Email
-    @Size(max=50)
+    @Size(max=255)
     private String email;
     @NotBlank
-    @Size(max=50)
+    @Size(max=255)
     private String name;
     @NotBlank
-    @Size(max=50)
+    @Size(max=255)
     private String surname;
     @NotBlank
-    @Size(max=50)
+    @Size(max=255)
     private String city;
-    private Long profileImageid;
+    private Long profileImageId;
 }

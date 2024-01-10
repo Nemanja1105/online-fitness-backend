@@ -38,7 +38,7 @@ public class ClientEntity {
     private String city;
 
     @Basic
-    @Column(name="email",nullable = false)
+    @Column(name="email",nullable = false,unique = true)
     private String email;
 
     @Basic
@@ -51,6 +51,10 @@ public class ClientEntity {
     @Basic
     @Column(name="approval_status",nullable = false)
     private boolean approvalStatus;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "image_id", referencedColumnName = "id")
+    private ImageEntity profileImage;
 
 
 }

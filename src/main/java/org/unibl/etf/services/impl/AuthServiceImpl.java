@@ -9,10 +9,7 @@ import org.springframework.stereotype.Service;
 import org.unibl.etf.exceptions.AlreadyExistsException;
 import org.unibl.etf.exceptions.NotApprovedException;
 import org.unibl.etf.exceptions.UnauthorizedException;
-import org.unibl.etf.models.dto.ClientDTO;
-import org.unibl.etf.models.dto.JwtUserDTO;
-import org.unibl.etf.models.dto.LoginRequestDTO;
-import org.unibl.etf.models.dto.RegisterRequestDTO;
+import org.unibl.etf.models.dto.*;
 import org.unibl.etf.models.entities.ClientEntity;
 import org.unibl.etf.models.enums.Role;
 import org.unibl.etf.repositories.ClientRepository;
@@ -67,5 +64,16 @@ public class AuthServiceImpl implements AuthService {
         var token=jwtService.generateToken(user);
         response.setToken(token);
         return response;
+    }
+
+    @Override
+    public boolean checkDetails(CheckDetailsDTO checkDetailsDTO) {
+        if(checkDetailsDTO.getColumn().equals("email") || checkDetailsDTO.getColumn().equals("clientEmail")){
+            return clientRepository.existsByEmail(checkDetailsDTO.getValue());
+        }
+        else if(checkDetailsDTO.getColumn().equals("username")|| checkDetailsDTO.getColumn().equals("clientUsername")){
+            return clientRepository.existsByUsername(checkDetailsDTO.getValue());
+        }
+        return false;
     }
 }
