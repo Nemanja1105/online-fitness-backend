@@ -3,10 +3,7 @@ package org.unibl.etf.controllers;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.unibl.etf.models.dto.CheckDetailsDTO;
-import org.unibl.etf.models.dto.ClientDTO;
-import org.unibl.etf.models.dto.LoginRequestDTO;
-import org.unibl.etf.models.dto.RegisterRequestDTO;
+import org.unibl.etf.models.dto.*;
 import org.unibl.etf.services.AuthService;
 
 @RestController
@@ -33,5 +30,9 @@ public class AuthController {
     @PostMapping("/check-details")
     public boolean checkDetails(@RequestBody CheckDetailsDTO checkDetailsDTO){
         return this.authService.checkDetails(checkDetailsDTO);
+    }
+    @PostMapping("/activate")
+    public boolean activateAccount(@RequestBody ValidationDTO validationDTO){
+        return this.authService.activateAccount(validationDTO);
     }
 }

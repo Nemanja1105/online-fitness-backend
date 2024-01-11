@@ -7,6 +7,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.unibl.etf.exceptions.AccountBlockedException;
 import org.unibl.etf.exceptions.AlreadyExistsException;
 import org.unibl.etf.exceptions.NotApprovedException;
 import org.unibl.etf.exceptions.UnauthorizedException;
@@ -47,6 +48,12 @@ public class GlobalExceptionHandler{
 
     @ExceptionHandler(NotApprovedException.class)
     public ResponseEntity<Object> handleNotApprovedException(NotApprovedException e)
+    {
+        return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_ACCEPTABLE);// 406-NIJE VERIFIKOVAN
+    }//401 nepostojeci klijent ili username
+
+    @ExceptionHandler(AccountBlockedException.class)
+    public ResponseEntity<Object> handleNotApprovedException(AccountBlockedException e)
     {
         return new ResponseEntity<>(e.getMessage(),HttpStatus.FORBIDDEN);
     }
