@@ -9,10 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.unibl.etf.exceptions.AccountBlockedException;
-import org.unibl.etf.exceptions.AlreadyExistsException;
-import org.unibl.etf.exceptions.NotApprovedException;
-import org.unibl.etf.exceptions.UnauthorizedException;
+import org.unibl.etf.exceptions.*;
 import org.unibl.etf.models.dto.*;
 import org.unibl.etf.models.entities.ClientEntity;
 import org.unibl.etf.models.enums.Role;
@@ -113,5 +110,16 @@ public class AuthServiceImpl implements AuthService {
     public void resendActivation(ClientEntity client) {
         var token=validationTokenRepository.findByClientId(client.getId()).get();
         this.emailService.sendVerificationEmail(token.getToken(), client.getEmail());
+    }
+
+    @Override
+    public void changePassword(ChangePasswordDTO changePasswordDTO, Authentication authentication) {
+        var user=clientRepository.findById(changePasswordDTO.getId()).orElseThrow(NotFoundException::new);
+        var jwtUser=(JwtUserDTO)authentication.getPrincipal();
+        if(!jwtUser.getId().equals(user.getId()))
+            throw new UnauthorizedException();
+        if(!passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword()))
+            throw new PasswordMismatchException();
+        user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
     }
 }

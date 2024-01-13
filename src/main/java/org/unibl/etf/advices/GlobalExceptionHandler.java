@@ -7,10 +7,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.unibl.etf.exceptions.AccountBlockedException;
-import org.unibl.etf.exceptions.AlreadyExistsException;
-import org.unibl.etf.exceptions.NotApprovedException;
-import org.unibl.etf.exceptions.UnauthorizedException;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.unibl.etf.exceptions.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +54,11 @@ public class GlobalExceptionHandler{
     public ResponseEntity<Object> handleNotApprovedException(AccountBlockedException e)
     {
         return new ResponseEntity<>(e.getMessage(),HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(PasswordMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public void handlePasswordMismatchException(){
     }
 
 

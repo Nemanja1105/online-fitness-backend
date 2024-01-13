@@ -2,6 +2,7 @@ package org.unibl.etf.controllers;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.unibl.etf.models.dto.*;
 import org.unibl.etf.services.AuthService;
@@ -9,7 +10,6 @@ import org.unibl.etf.services.AuthService;
 @RestController
 @RequestMapping("api/v1/auth")
 public class AuthController {
-
     private final AuthService authService;
 
     public AuthController(AuthService authService) {
@@ -34,5 +34,10 @@ public class AuthController {
     @PostMapping("/activate")
     public boolean activateAccount(@RequestBody ValidationDTO validationDTO){
         return this.authService.activateAccount(validationDTO);
+    }
+
+    @PostMapping("/change-password")
+    public void changePassword(@Valid @RequestBody ChangePasswordDTO changePasswordDTO, Authentication auth){
+        this.authService.changePassword(changePasswordDTO,auth);
     }
 }
