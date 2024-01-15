@@ -19,7 +19,7 @@ public class CategoryEntity {
     private Long id;
 
     @Basic
-    @Column(name = "name",nullable = false,length=50,unique = true)
+    @Column(name = "name",nullable = false,unique = true)
     private String name;
 
     @OneToMany(mappedBy = "category")
