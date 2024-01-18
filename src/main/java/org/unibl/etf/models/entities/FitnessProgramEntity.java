@@ -24,7 +24,7 @@ public class FitnessProgramEntity {
     @Column(name="name",nullable = false)
     private String name;//
     @Basic
-    @Column(name="description",nullable = false)
+    @Column(name="description",nullable = false,length = 1000)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -72,7 +72,7 @@ public class FitnessProgramEntity {
 
     @Basic
     @Column(name="location_link")
-    private String locationLink;
+    private String linkAddress;
 
     @Basic
     @Column(name="status",nullable = false)

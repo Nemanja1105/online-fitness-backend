@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.unibl.etf.exceptions.NotFoundException;
 import org.unibl.etf.exceptions.UnauthorizedException;
 import org.unibl.etf.models.dto.FitnessProgramDTO;
 import org.unibl.etf.models.dto.FitnessProgramRequestDTO;
@@ -70,5 +71,11 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
     @Override
     public List<FitnessProgramDTO> findAll() {
         return this.fitnessProgramRepository.findAllByStatus(true).stream().map(el->mapper.map(el, FitnessProgramDTO.class)).toList();
+    }
+
+    @Override
+    public FitnessProgramDTO findById(Long id) {
+        var entity=this.fitnessProgramRepository.findById(id).orElseThrow(NotFoundException::new);
+        return mapper.map(entity, FitnessProgramDTO.class);
     }
 }

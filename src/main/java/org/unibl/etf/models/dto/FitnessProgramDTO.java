@@ -24,7 +24,7 @@ public class FitnessProgramDTO {
     private String instructorName;
     private String instructorSurname;
     private String instructorContact;
-    private String locationLink;
+    private String linkAddress;
     private List<AttributeDTO> attributes;
     private ClientInfoDTO client;
 }

@@ -61,5 +61,11 @@ public class GlobalExceptionHandler{
     public void handlePasswordMismatchException(){
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public void handleNotFoundException() {
+
+    }
+
 
 }

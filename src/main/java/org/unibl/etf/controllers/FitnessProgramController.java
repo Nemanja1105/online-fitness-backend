@@ -1,6 +1,7 @@
 package org.unibl.etf.controllers;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.unibl.etf.models.dto.FitnessProgramDTO;
@@ -21,5 +22,10 @@ public class FitnessProgramController {
     @GetMapping
     public List<FitnessProgramDTO> findAll(){
         return this.fitnessProgramService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public FitnessProgramDTO findById(@PathVariable Long id){
+        return this.fitnessProgramService.findById(id);
     }
 }
