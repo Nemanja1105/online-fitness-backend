@@ -1,9 +1,9 @@
 package org.unibl.etf.controllers;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import org.unibl.etf.models.dto.FitnessProgramCommentDTO;
+import org.unibl.etf.models.dto.FitnessProgramCommentRequestDTO;
 import org.unibl.etf.models.dto.FitnessProgramDTO;
 import org.unibl.etf.services.FitnessProgramService;
 
@@ -27,5 +27,15 @@ public class FitnessProgramController {
     @GetMapping("/{id}")
     public FitnessProgramDTO findById(@PathVariable Long id){
         return this.fitnessProgramService.findById(id);
+    }
+
+    @PostMapping("/{id}/comments")
+    public FitnessProgramCommentDTO commentFitnessProgram(@Valid @RequestBody FitnessProgramCommentRequestDTO requestDTO){
+        return this.fitnessProgramService.commentFitnessProgram(requestDTO);
+    }
+
+    @GetMapping("/{id}/comments")
+    public  List<FitnessProgramCommentDTO> findAllCommentsForFp(@PathVariable Long id){
+        return this.fitnessProgramService.findAllCommentsForFp(id);
     }
 }

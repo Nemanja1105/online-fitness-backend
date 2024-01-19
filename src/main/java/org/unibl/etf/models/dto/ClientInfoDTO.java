@@ -12,4 +12,5 @@ public class ClientInfoDTO {
     private String username;
     private String name;
     private String surname;
+    private Long profileImageId;
 }

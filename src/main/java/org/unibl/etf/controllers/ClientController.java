@@ -3,10 +3,7 @@ package org.unibl.etf.controllers;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.unibl.etf.models.dto.ClientDTO;
-import org.unibl.etf.models.dto.FitnessProgramDTO;
-import org.unibl.etf.models.dto.FitnessProgramRequestDTO;
-import org.unibl.etf.models.dto.UpdateClientDTO;
+import org.unibl.etf.models.dto.*;
 import org.unibl.etf.services.ClientService;
 import org.unibl.etf.services.FitnessProgramService;
 
@@ -41,6 +38,9 @@ public class ClientController {
     public boolean isClientParticipatingInFp(@PathVariable Long id,@PathVariable Long fpId,Authentication auth){
        return this.fitnessProgramService.isClientParticipatingInFp(id,fpId,auth);
     }
+
+
+
 
 
 
