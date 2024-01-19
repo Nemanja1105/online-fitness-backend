@@ -6,6 +6,7 @@ import org.unibl.etf.models.enums.Difficulty;
 import org.unibl.etf.models.enums.Location;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -77,6 +78,10 @@ public class FitnessProgramEntity {
     @Basic
     @Column(name="status",nullable = false)
     private boolean status=true;
+
+    @Basic
+    @Column(name="created_at")
+    private Date createdAt;
 
     @OneToMany(mappedBy = "fitnessProgram")
     private List<FitnessProgramAttributeEntity> attributes;

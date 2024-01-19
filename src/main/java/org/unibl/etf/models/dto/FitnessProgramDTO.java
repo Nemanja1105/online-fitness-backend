@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -25,6 +26,7 @@ public class FitnessProgramDTO {
     private String instructorSurname;
     private String instructorContact;
     private String linkAddress;
+    private Date createdAt;
     private List<AttributeDTO> attributes;
     private ClientInfoDTO client;
 }

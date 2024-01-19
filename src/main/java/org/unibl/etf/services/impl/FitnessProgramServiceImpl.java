@@ -15,9 +15,12 @@ import org.unibl.etf.models.entities.*;
 import org.unibl.etf.models.enums.Difficulty;
 import org.unibl.etf.models.enums.Location;
 import org.unibl.etf.repositories.FitnessProgramAttributeRepository;
+import org.unibl.etf.repositories.FitnessProgramParticipationRepository;
 import org.unibl.etf.repositories.FitnessProgramRepository;
 import org.unibl.etf.services.FitnessProgramService;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -29,13 +32,16 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
 
     private final FitnessProgramAttributeRepository fitnessProgramAttributeRepository;
 
+    private final FitnessProgramParticipationRepository fitnessProgramParticipationRepository;
+
     @PersistenceContext
     private EntityManager entityManager;
 
-    public FitnessProgramServiceImpl(ModelMapper mapper, FitnessProgramRepository fitnessProgramRepository, FitnessProgramAttributeRepository fitnessProgramAttributeRepository) {
+    public FitnessProgramServiceImpl(ModelMapper mapper, FitnessProgramRepository fitnessProgramRepository, FitnessProgramAttributeRepository fitnessProgramAttributeRepository, FitnessProgramParticipationRepository fitnessProgramParticipationRepository) {
         this.mapper = mapper;
         this.fitnessProgramRepository = fitnessProgramRepository;
         this.fitnessProgramAttributeRepository = fitnessProgramAttributeRepository;
+        this.fitnessProgramParticipationRepository = fitnessProgramParticipationRepository;
     }
 
     @Override
@@ -54,6 +60,7 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
         entity.setClient(client);
         entity.setCategory(category);
         entity.setStatus(true);
+        entity.setCreatedAt(new Date());
         entity=this.fitnessProgramRepository.saveAndFlush(entity);
         this.entityManager.refresh(entity);
         for(var attr:requestDTO.getAttributes()){
@@ -77,5 +84,40 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
     public FitnessProgramDTO findById(Long id) {
         var entity=this.fitnessProgramRepository.findById(id).orElseThrow(NotFoundException::new);
         return mapper.map(entity, FitnessProgramDTO.class);
+    }
+
+    @Override
+    public void participateClient(Long cliendId, Long fpId, Authentication auth) {
+        var jwtUser=(JwtUserDTO)auth.getPrincipal();
+        if(!jwtUser.getId().equals(cliendId))
+            throw new UnauthorizedException();
+        var fitnessProgram=this.fitnessProgramRepository.findById(fpId).orElseThrow(NotFoundException::new);
+        ClientEntity client=new ClientEntity(); client.setId(cliendId);
+        var fpP=new FitnessProgramParticipationEntity();
+        fpP.setClient(client); fpP.setFitnessProgram(fitnessProgram);
+        fpP.setStartDate(new Date());
+        this.fitnessProgramParticipationRepository.saveAndFlush(fpP);
+    }
+
+    //ako mi vrati false moze da se prikaze dugme, ako je true ne moze
+    @Override
+    public boolean isClientParticipatingInFp(Long cliendId, Long fpId, Authentication auth) {
+        var jwtUser=(JwtUserDTO)auth.getPrincipal();
+        if(!jwtUser.getId().equals(cliendId))
+            throw new UnauthorizedException();
+        var entity= this.fitnessProgramParticipationRepository.findByClientIdAndFitnessProgramId(cliendId,fpId);
+        if(entity.isEmpty())
+            return false;
+        var fp=this.fitnessProgramRepository.findById(fpId).orElseThrow(NotFoundException::new);
+        var tmp=entity.get();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(tmp.getStartDate());
+        calendar.add(Calendar.DAY_OF_MONTH, fp.getDuration());
+        Date programEndDate = calendar.getTime();
+        System.out.println(programEndDate);
+        Date currentDate = new Date();
+        return programEndDate.after(currentDate);
+
+
     }
 }

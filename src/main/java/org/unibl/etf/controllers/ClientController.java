@@ -32,5 +32,16 @@ public class ClientController {
         return this.fitnessProgramService.insert(id,requestDTO,authentication);
     }
 
+    @GetMapping("/{id}/fitness-program/{fpId}/subscribe")
+    public void participateClientToProgram(@PathVariable Long id,@PathVariable Long fpId,Authentication auth){
+        this.fitnessProgramService.participateClient(id,fpId,auth);
+    }
+
+    @GetMapping("/{id}/fitness-program/{fpId}/participating")
+    public boolean isClientParticipatingInFp(@PathVariable Long id,@PathVariable Long fpId,Authentication auth){
+       return this.fitnessProgramService.isClientParticipatingInFp(id,fpId,auth);
+    }
+
+
 
 }
