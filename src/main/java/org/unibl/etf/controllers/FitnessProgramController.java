@@ -1,7 +1,10 @@
 package org.unibl.etf.controllers;
 
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+import org.unibl.etf.models.dto.FilterDTO;
 import org.unibl.etf.models.dto.FitnessProgramCommentDTO;
 import org.unibl.etf.models.dto.FitnessProgramCommentRequestDTO;
 import org.unibl.etf.models.dto.FitnessProgramDTO;
@@ -37,5 +40,10 @@ public class FitnessProgramController {
     @GetMapping("/{id}/comments")
     public  List<FitnessProgramCommentDTO> findAllCommentsForFp(@PathVariable Long id){
         return this.fitnessProgramService.findAllCommentsForFp(id);
+    }
+
+    @PostMapping("/filters")
+    public Page<FitnessProgramDTO> findAllByFilters(@RequestBody List<FilterDTO> filters, Pageable page){
+        return this.fitnessProgramService.findAllByFilters(filters,page);
     }
 }

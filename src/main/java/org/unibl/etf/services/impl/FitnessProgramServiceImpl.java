@@ -4,6 +4,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.unibl.etf.exceptions.NotFoundException;
@@ -12,6 +14,7 @@ import org.unibl.etf.models.dto.*;
 import org.unibl.etf.models.entities.*;
 import org.unibl.etf.models.enums.Difficulty;
 import org.unibl.etf.models.enums.Location;
+import org.unibl.etf.models.specifications.FitnessProgramSpecification;
 import org.unibl.etf.repositories.FitnessProgramAttributeRepository;
 import org.unibl.etf.repositories.FitnessProgramCommentRepository;
 import org.unibl.etf.repositories.FitnessProgramParticipationRepository;
@@ -152,5 +155,12 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
     public List<FitnessProgramCommentDTO> findAllCommentsForFp(Long id) {
         return this.fitnessProgramCommentRepository.findAllByFitnessProgramIdOrderByCreatedAtDesc(id).stream()
                 .map(el->mapper.map(el,FitnessProgramCommentDTO.class)).toList();
+    }
+
+    @Override
+    public Page<FitnessProgramDTO> findAllByFilters(List<FilterDTO> filters, Pageable pageable) {
+        filters.add(new FilterDTO("status",true));
+        var spec= FitnessProgramSpecification.filters(filters);
+        return this.fitnessProgramRepository.findAll(spec,pageable).map(el->mapper.map(el,FitnessProgramDTO.class));
     }
 }

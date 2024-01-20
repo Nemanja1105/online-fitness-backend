@@ -1,10 +1,9 @@
 package org.unibl.etf.services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
-import org.unibl.etf.models.dto.FitnessProgramCommentDTO;
-import org.unibl.etf.models.dto.FitnessProgramCommentRequestDTO;
-import org.unibl.etf.models.dto.FitnessProgramDTO;
-import org.unibl.etf.models.dto.FitnessProgramRequestDTO;
+import org.unibl.etf.models.dto.*;
 import org.unibl.etf.models.entities.FitnessProgramEntity;
 
 import java.util.List;
@@ -17,4 +16,5 @@ public interface FitnessProgramService {
     boolean isClientParticipatingInFp(Long cliendId,Long fpId,Authentication auth);
     FitnessProgramCommentDTO commentFitnessProgram(FitnessProgramCommentRequestDTO requestDTO);
     List<FitnessProgramCommentDTO> findAllCommentsForFp(Long id);
+    Page<FitnessProgramDTO> findAllByFilters(List<FilterDTO> filters, Pageable pageable);
 }
