@@ -21,6 +21,11 @@ public class ClientController {
         this.fitnessProgramService = fitnessProgramService;
     }
 
+    @GetMapping
+    public List<ClientInfoDTO> findAll(){
+        return this.clientService.findAll();
+    }
+
     @PostMapping("/{id}")
     public ClientDTO updateClient(@PathVariable Long id, @RequestBody UpdateClientDTO request, Authentication auth){
         return this.clientService.updateClient(id,request,auth);

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.unibl.etf.exceptions.NotFoundException;
 import org.unibl.etf.exceptions.UnauthorizedException;
 import org.unibl.etf.models.dto.ClientDTO;
+import org.unibl.etf.models.dto.ClientInfoDTO;
 import org.unibl.etf.models.dto.JwtUserDTO;
 import org.unibl.etf.models.dto.UpdateClientDTO;
 import org.unibl.etf.models.entities.ImageEntity;
@@ -15,6 +16,7 @@ import org.unibl.etf.services.ClientService;
 import org.unibl.etf.services.ImageService;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @Transactional
@@ -58,5 +60,10 @@ public class ClientServiceImpl implements ClientService {
             client.setProfileImage(image);
         }
         return mapper.map(client,ClientDTO.class);
+    }
+
+    @Override
+    public List<ClientInfoDTO> findAll() {
+        return this.clientRepository.findAllByStatus(true).stream().map(el->mapper.map(el, ClientInfoDTO.class)).toList();
     }
 }
