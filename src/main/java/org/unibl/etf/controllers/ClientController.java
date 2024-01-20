@@ -7,6 +7,8 @@ import org.unibl.etf.models.dto.*;
 import org.unibl.etf.services.ClientService;
 import org.unibl.etf.services.FitnessProgramService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/clients")
 public class ClientController {
@@ -39,7 +41,25 @@ public class ClientController {
        return this.fitnessProgramService.isClientParticipatingInFp(id,fpId,auth);
     }
 
+    @GetMapping("/{id}/fitness-programs")
+    public List<FitnessProgramDTO> findAllFpForClient(@PathVariable Long id, Authentication auth){
+        return this.fitnessProgramService.findAllFpForClient(id,auth);
+    }
 
+    @DeleteMapping("/{id}/fitness-programs/{fpId}")
+    public void deleteFp(@PathVariable Long id,@PathVariable Long fpId,Authentication auth){
+        this.fitnessProgramService.deleteFp(id,fpId,auth);
+    }
+
+    @GetMapping("/{id}/fitness-programs/active")
+    public List<FitnessProgramDTO> findAllActiveFpForClient(@PathVariable Long id,Authentication auth){
+        return this.fitnessProgramService.findAllActiveFpForClient(id,auth);
+    }
+
+    @GetMapping("/{id}/fitness-programs/finished")
+    public List<FitnessProgramDTO> findAllFinishedFpForClient(@PathVariable Long id,Authentication auth){
+        return this.fitnessProgramService.findAllFinishedFpForClient(id,auth);
+    }
 
 
 

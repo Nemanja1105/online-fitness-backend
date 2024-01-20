@@ -17,4 +17,8 @@ public interface FitnessProgramService {
     FitnessProgramCommentDTO commentFitnessProgram(FitnessProgramCommentRequestDTO requestDTO);
     List<FitnessProgramCommentDTO> findAllCommentsForFp(Long id);
     Page<FitnessProgramDTO> findAllByFilters(List<FilterDTO> filters, Pageable pageable);
+    List<FitnessProgramDTO> findAllFpForClient(Long id,Authentication auth);
+    void deleteFp(Long clientId,Long fpId,Authentication auth);
+    List<FitnessProgramDTO> findAllActiveFpForClient(Long id,Authentication auth);
+    List<FitnessProgramDTO> findAllFinishedFpForClient(Long id,Authentication auth);
 }

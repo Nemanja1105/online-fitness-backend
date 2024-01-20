@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface FitnessProgramRepository extends JpaRepository<FitnessProgramEntity,Long>, JpaSpecificationExecutor<FitnessProgramEntity> {
     List<FitnessProgramEntity> findAllByStatus(boolean status);
+    List<FitnessProgramEntity> findAllByClientIdAndStatus(Long id,boolean status);
 }

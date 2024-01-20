@@ -68,6 +68,7 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
         entity.setClient(client);
         entity.setCategory(category);
         entity.setStatus(true);
+        entity.setLinkAddress(requestDTO.getLocationLink());
         entity.setCreatedAt(new Date());
         entity = this.fitnessProgramRepository.saveAndFlush(entity);
         this.entityManager.refresh(entity);
@@ -101,6 +102,13 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
         if (!jwtUser.getId().equals(cliendId))
             throw new UnauthorizedException();
         var fitnessProgram = this.fitnessProgramRepository.findById(fpId).orElseThrow(NotFoundException::new);
+        var optionalPart=this.fitnessProgramParticipationRepository.findByClientIdAndFitnessProgramId(cliendId,fpId);
+        if(optionalPart.isPresent()){
+            var optionalTmp=optionalPart.get();
+            if(!isAfter(optionalTmp.getStartDate(),fitnessProgram.getDuration()))
+                optionalTmp.setStartDate(new Date());
+            return;
+        }
         ClientEntity client = new ClientEntity();
         client.setId(cliendId);
         var fpP = new FitnessProgramParticipationEntity();
@@ -128,8 +136,15 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
         System.out.println(programEndDate);
         Date currentDate = new Date();
         return programEndDate.after(currentDate);
+    }
 
-
+    private boolean isAfter(Date startDate,Integer duration){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+        calendar.add(Calendar.DAY_OF_MONTH, duration);
+        Date programEndDate = calendar.getTime();
+        Date currentDate = new Date();
+        return programEndDate.after(currentDate);
     }
 
     @Override
@@ -163,4 +178,42 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
         var spec= FitnessProgramSpecification.filters(filters);
         return this.fitnessProgramRepository.findAll(spec,pageable).map(el->mapper.map(el,FitnessProgramDTO.class));
     }
+
+    @Override
+    public List<FitnessProgramDTO> findAllFpForClient(Long id, Authentication auth) {
+        var jwtUser = (JwtUserDTO) auth.getPrincipal();
+        if (!jwtUser.getId().equals(id))
+            throw new UnauthorizedException();
+        return this.fitnessProgramRepository.findAllByClientIdAndStatus(id,true).stream()
+                .map(el->mapper.map(el,FitnessProgramDTO.class)).toList();
+    }
+
+    @Override
+    public void deleteFp(Long clientId, Long fpId, Authentication auth) {
+        var fp=this.fitnessProgramRepository.findById(fpId).orElseThrow(NotFoundException::new);
+        var jwtUser = (JwtUserDTO) auth.getPrincipal();
+        if (!jwtUser.getId().equals(fp.getClient().getId()))
+            throw new UnauthorizedException();
+        fp.setStatus(false);
+    }
+
+    @Override
+    public List<FitnessProgramDTO> findAllActiveFpForClient(Long id, Authentication auth) {
+        var jwtUser = (JwtUserDTO) auth.getPrincipal();
+        if (!jwtUser.getId().equals(id))
+            throw new UnauthorizedException();
+        var participation=this.fitnessProgramParticipationRepository.findAllByClientId(id);
+       return participation.stream().filter(el->this.isAfter(el.getStartDate(),el.getFitnessProgram().getDuration())).map(el->mapper.map(el.getFitnessProgram(),FitnessProgramDTO.class)).toList();
+    }
+
+    @Override
+    public List<FitnessProgramDTO> findAllFinishedFpForClient(Long id, Authentication auth) {
+        var jwtUser = (JwtUserDTO) auth.getPrincipal();
+        if (!jwtUser.getId().equals(id))
+            throw new UnauthorizedException();
+        var participation=this.fitnessProgramParticipationRepository.findAllByClientId(id);
+        return participation.stream().filter(el->!this.isAfter(el.getStartDate(),el.getFitnessProgram().getDuration())).map(el->mapper.map(el.getFitnessProgram(),FitnessProgramDTO.class)).toList();
+    }
+
+
 }
