@@ -3,6 +3,7 @@ package org.unibl.etf.services.impl;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -44,6 +45,21 @@ public class EmailServiceImpl implements EmailService {
         }
         catch(Exception e){
             throw new RuntimeException(e);
+        }
+    }
+
+    @Async
+    public void sendInfoMail(String mail,String to){
+        try{
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromMail);
+            message.setTo(to);
+            message.setSubject("Daily Fitness programs");
+            message.setText(mail);
+            this.mailSender.send(message);
+        }
+        catch(Exception e){
+            throw new RuntimeException();
         }
     }
 }
