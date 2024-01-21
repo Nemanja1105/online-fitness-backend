@@ -4,8 +4,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.unibl.etf.exceptions.NotFoundException;
 import org.unibl.etf.exceptions.UnauthorizedException;
 import org.unibl.etf.models.dto.JwtUserDTO;
 import org.unibl.etf.models.dto.MessageDTO;
@@ -16,6 +19,7 @@ import org.unibl.etf.repositories.MessageRepository;
 import org.unibl.etf.services.MessageService;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Transactional
@@ -48,5 +52,22 @@ public class MessageServiceImpl implements MessageService {
         entity=this.messageRepository.saveAndFlush(entity);
         entityManager.refresh(entity);
         return mapper.map(entity,MessageDTO.class);
+    }
+
+    @Override
+    public Page<MessageDTO> findAllMessageForClient(Long id, Authentication auth, Pageable page) {
+        var jwtUser = (JwtUserDTO) auth.getPrincipal();
+        if (!jwtUser.getId().equals(id))
+            throw new UnauthorizedException();
+        return this.messageRepository.findAllByReceiverIdOrSenderIdOrderByCreatedAtDesc(id,id,page).map(el->mapper.map(el,MessageDTO.class));
+    }
+
+    @Override
+    public void markAsRead(Long id, Authentication auth) {
+        var entity=this.messageRepository.findById(id).orElseThrow(NotFoundException::new);
+        var jwtUser = (JwtUserDTO) auth.getPrincipal();
+        if (!jwtUser.getId().equals(entity.getReceiver().getId()))
+            throw new UnauthorizedException();
+        entity.setSeen(true);
     }
 }

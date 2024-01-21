@@ -1,11 +1,14 @@
 package org.unibl.etf.controllers;
 
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.unibl.etf.models.dto.*;
 import org.unibl.etf.services.ClientService;
 import org.unibl.etf.services.FitnessProgramService;
+import org.unibl.etf.services.MessageService;
 
 import java.util.List;
 
@@ -16,9 +19,12 @@ public class ClientController {
     private final ClientService clientService;
     private final FitnessProgramService fitnessProgramService;
 
-    public ClientController(ClientService clientService, FitnessProgramService fitnessProgramService) {
+    private  final MessageService messageService;
+
+    public ClientController(ClientService clientService, FitnessProgramService fitnessProgramService, MessageService messageService) {
         this.clientService = clientService;
         this.fitnessProgramService = fitnessProgramService;
+        this.messageService = messageService;
     }
 
     @GetMapping
@@ -64,6 +70,11 @@ public class ClientController {
     @GetMapping("/{id}/fitness-programs/finished")
     public List<FitnessProgramDTO> findAllFinishedFpForClient(@PathVariable Long id,Authentication auth){
         return this.fitnessProgramService.findAllFinishedFpForClient(id,auth);
+    }
+
+    @GetMapping("/{id}/messages")
+    public Page<MessageDTO> findAllClientMessages(@PathVariable Long id, Authentication auth, Pageable page){
+        return this.messageService.findAllMessageForClient(id,auth,page);
     }
 
 

@@ -17,5 +17,5 @@ public class MessageDTO {
     private boolean seen;
     private Date createdAt;
     private ClientInfoDTO sender;
-    private Long receiverId;
+    private ClientInfoDTO receiver;
 }
