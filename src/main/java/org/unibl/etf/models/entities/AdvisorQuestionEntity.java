@@ -1,0 +1,40 @@
+package org.unibl.etf.models.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.Date;
+
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(of = {"id"})
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity(name = "advisor_question")
+public class AdvisorQuestionEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="id",nullable=false)
+    private Long id;
+
+    @Basic
+    @Column(name="message",nullable = false,length = 1000)
+    private String message;
+
+    @Basic
+    @Column(name="seen",nullable = false)
+    private boolean seen;
+
+    @Basic
+    @Column(name="created_at",nullable = false)
+    private Date createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id", referencedColumnName = "id")
+    private ClientEntity sender;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fitness_program_id", referencedColumnName = "id")
+    private FitnessProgramEntity fitnessProgram;
+}

@@ -1,5 +1,6 @@
 package org.unibl.etf.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.unibl.etf.models.dto.MessageDTO;
@@ -16,7 +17,7 @@ public class MessageController {
     }
 
     @PostMapping
-    public MessageDTO insertMessage(@RequestBody MessageRequestDTO requestDTO, Authentication auth){
+    public MessageDTO insertMessage(@Valid @RequestBody MessageRequestDTO requestDTO, Authentication auth){
         return this.messageService.sendMessage(requestDTO,auth);
     }
 
