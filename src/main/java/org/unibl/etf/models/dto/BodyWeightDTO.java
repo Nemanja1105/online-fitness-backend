@@ -1,19 +1,15 @@
 package org.unibl.etf.models.dto;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.unibl.etf.models.entities.ClientEntity;
 
 import java.util.Date;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ActivityDTO extends ActivityRequestDTO {
+public class BodyWeightDTO extends BodyWeightRequestDTO {
     private Long id;
     private Long clientId;
-    private Date createdAt;
 }

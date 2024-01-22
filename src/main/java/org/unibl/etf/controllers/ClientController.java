@@ -3,15 +3,16 @@ package org.unibl.etf.controllers;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.unibl.etf.models.dto.*;
-import org.unibl.etf.services.ActivityService;
-import org.unibl.etf.services.ClientService;
-import org.unibl.etf.services.FitnessProgramService;
-import org.unibl.etf.services.MessageService;
+import org.unibl.etf.services.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -23,12 +24,16 @@ public class ClientController {
 
     private  final MessageService messageService;
     private final ActivityService activityService;
+    private final BodyWeightService bodyWeightService;
+    private final PdfService pdfService;
 
-    public ClientController(ClientService clientService, FitnessProgramService fitnessProgramService, MessageService messageService, ActivityService activityService) {
+    public ClientController(ClientService clientService, FitnessProgramService fitnessProgramService, MessageService messageService, ActivityService activityService, BodyWeightService bodyWeightService, PdfService pdfService) {
         this.clientService = clientService;
         this.fitnessProgramService = fitnessProgramService;
         this.messageService = messageService;
         this.activityService = activityService;
+        this.bodyWeightService = bodyWeightService;
+        this.pdfService = pdfService;
     }
 
     @GetMapping
@@ -96,6 +101,25 @@ public class ClientController {
     @DeleteMapping("/{clientId}/activities/{activityId}")
     public void deleteActivityForClient(@PathVariable Long clientId,@PathVariable Long activityId,Authentication authentication){
         this.activityService.deleteActivity(clientId,activityId,authentication);
+    }
+
+    @PostMapping("/{id}/bodyweights")
+    @ResponseStatus(HttpStatus.CREATED)
+    public BodyWeightDTO insertBodyWeightForClient(@PathVariable Long id,@Valid @RequestBody BodyWeightRequestDTO requestDTO,Authentication authentication){
+        return this.bodyWeightService.insertBodyWeightForClient(id,requestDTO,authentication);
+    }
+
+    @PostMapping("/{id}/bodyweights/statistic")
+    public BodyWeightStatisticDTO findStatisticForClient(@PathVariable Long id,@Valid @RequestBody BodyWeightFilterDTO request,Authentication authentication){
+        return this.bodyWeightService.findStatisticForClient(id,request,authentication);
+    }
+
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<?> downloadPdf(@PathVariable Long id) throws IOException {
+        PdfDTO pdfDTO = pdfService.generatePdfForClient(id);
+        return ResponseEntity.ok().contentType(MediaType.parseMediaType("application/pdf"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + pdfDTO.getFileName()+".pdf" + "\"")
+                .body(pdfDTO.getData());
     }
 
 
