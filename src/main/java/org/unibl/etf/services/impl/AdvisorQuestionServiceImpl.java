@@ -12,6 +12,7 @@ import org.unibl.etf.models.entities.ClientEntity;
 import org.unibl.etf.models.entities.FitnessProgramEntity;
 import org.unibl.etf.repositories.AdvisorQuestionRepository;
 import org.unibl.etf.services.AdvisorQuestionService;
+import org.unibl.etf.services.LogService;
 
 import java.util.Date;
 
@@ -20,18 +21,22 @@ import java.util.Date;
 public class AdvisorQuestionServiceImpl implements AdvisorQuestionService {
 
     private final AdvisorQuestionRepository advisorQuestionRepository;
+    private final LogService logService;
     private final ModelMapper mapper;
 
-    public AdvisorQuestionServiceImpl(AdvisorQuestionRepository advisorQuestionRepository, ModelMapper mapper) {
+    public AdvisorQuestionServiceImpl(AdvisorQuestionRepository advisorQuestionRepository, LogService logService, ModelMapper mapper) {
         this.advisorQuestionRepository = advisorQuestionRepository;
+        this.logService = logService;
         this.mapper = mapper;
     }
 
     @Override
     public void sendQuestion(AdvisorQuestionRequestDTO requestDTO, Authentication auth) {
         var jwtUser = (JwtUserDTO) auth.getPrincipal();
-        if (!jwtUser.getId().equals(requestDTO.getSender()))
+        if (!jwtUser.getId().equals(requestDTO.getSender())) {
+            this.logService.warning("Attempted action on someone else's account. Client:"+jwtUser.getUsername()+".");
             throw new UnauthorizedException();
+        }
         var entity=mapper.map(requestDTO, AdvisorQuestionEntity.class);
         entity.setId(null);
         entity.setSeen(false);
@@ -41,5 +46,6 @@ public class AdvisorQuestionServiceImpl implements AdvisorQuestionService {
         FitnessProgramEntity fp=new FitnessProgramEntity(); fp.setId(requestDTO.getFitnessProgram());
         entity.setFitnessProgram(fp);
         entity=this.advisorQuestionRepository.saveAndFlush(entity);
+        this.logService.warning("Client "+jwtUser.getUsername()+" successfully sent a question to advisor.");
     }
 }

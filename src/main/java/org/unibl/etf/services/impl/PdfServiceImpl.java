@@ -4,15 +4,13 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
-import org.unibl.etf.exceptions.UnauthorizedException;
-import org.unibl.etf.models.dto.JwtUserDTO;
 import org.unibl.etf.models.dto.PdfDTO;
 import org.unibl.etf.repositories.ActivityRepository;
 import org.unibl.etf.repositories.BodyWeightRepository;
+import org.unibl.etf.services.LogService;
 import org.unibl.etf.services.PdfService;
 
 
@@ -27,9 +25,15 @@ public class PdfServiceImpl implements PdfService {
     private final ActivityRepository activityRepository;
     private final BodyWeightRepository bodyWeightRepository;
 
-    public PdfServiceImpl(ActivityRepository activityRepository, BodyWeightRepository bodyWeightRepository) {
+    private final HttpServletRequest request;
+
+    private final LogService logService;
+
+    public PdfServiceImpl(ActivityRepository activityRepository, BodyWeightRepository bodyWeightRepository, HttpServletRequest request, LogService logService) {
         this.activityRepository = activityRepository;
         this.bodyWeightRepository = bodyWeightRepository;
+        this.request = request;
+        this.logService = logService;
     }
 
 
@@ -96,10 +100,11 @@ public class PdfServiceImpl implements PdfService {
             document.close();
             writer.flush();
             writer.close();
+            this.logService.info("Client "+request.getRemoteAddr()+" successfully generated pdf(own-"+clientId+").");
             return new PdfDTO("Activity_"+clientId, byteArrayOutputStream.toByteArray());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            this.logService.error(e.getMessage());
         }
         return null;
     }

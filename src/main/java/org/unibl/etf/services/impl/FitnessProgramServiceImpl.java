@@ -2,6 +2,7 @@ package org.unibl.etf.services.impl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import org.unibl.etf.repositories.FitnessProgramCommentRepository;
 import org.unibl.etf.repositories.FitnessProgramParticipationRepository;
 import org.unibl.etf.repositories.FitnessProgramRepository;
 import org.unibl.etf.services.FitnessProgramService;
+import org.unibl.etf.services.LogService;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -38,22 +40,28 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
 
     private final FitnessProgramCommentRepository fitnessProgramCommentRepository;
 
+    private final LogService logService;
+    private final HttpServletRequest request;
     @PersistenceContext
     private EntityManager entityManager;
 
-    public FitnessProgramServiceImpl(ModelMapper mapper, FitnessProgramRepository fitnessProgramRepository, FitnessProgramAttributeRepository fitnessProgramAttributeRepository, FitnessProgramParticipationRepository fitnessProgramParticipationRepository, FitnessProgramCommentRepository fitnessProgramCommentRepository) {
+    public FitnessProgramServiceImpl(ModelMapper mapper, FitnessProgramRepository fitnessProgramRepository, FitnessProgramAttributeRepository fitnessProgramAttributeRepository, FitnessProgramParticipationRepository fitnessProgramParticipationRepository, FitnessProgramCommentRepository fitnessProgramCommentRepository, LogService logService, HttpServletRequest request) {
         this.mapper = mapper;
         this.fitnessProgramRepository = fitnessProgramRepository;
         this.fitnessProgramAttributeRepository = fitnessProgramAttributeRepository;
         this.fitnessProgramParticipationRepository = fitnessProgramParticipationRepository;
         this.fitnessProgramCommentRepository = fitnessProgramCommentRepository;
+        this.logService = logService;
+        this.request = request;
     }
 
     @Override
     public FitnessProgramDTO insert(Long id, FitnessProgramRequestDTO requestDTO, Authentication auth) {
         var jwtUser = (JwtUserDTO) auth.getPrincipal();
-        if (!jwtUser.getId().equals(id))
+        if (!jwtUser.getId().equals(id)) {
+            this.logService.warning("Attempted action on someone else's account. Client:"+jwtUser.getUsername()+".");
             throw new UnauthorizedException();
+        }
         var entity = mapper.map(requestDTO, FitnessProgramEntity.class);
         entity.setId(null);
         entity.setDifficulty(Difficulty.getByStatus(requestDTO.getDifficulty()));
@@ -87,7 +95,8 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
 
     @Override
     public List<FitnessProgramDTO> findAll() {
-        return this.fitnessProgramRepository.findAllByStatus(true).stream().map(el -> mapper.map(el, FitnessProgramDTO.class)).toList();
+        var result= this.fitnessProgramRepository.findAllByStatus(true).stream().map(el -> mapper.map(el, FitnessProgramDTO.class)).toList();
+        return result;
     }
 
     @Override
@@ -99,14 +108,17 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
     @Override
     public void participateClient(Long cliendId, Long fpId, Authentication auth) {
         var jwtUser = (JwtUserDTO) auth.getPrincipal();
-        if (!jwtUser.getId().equals(cliendId))
+        if (!jwtUser.getId().equals(cliendId)) {
+            this.logService.warning("Attempted action on someone else's account. Client:"+jwtUser.getUsername()+".");
             throw new UnauthorizedException();
+        }
         var fitnessProgram = this.fitnessProgramRepository.findById(fpId).orElseThrow(NotFoundException::new);
         var optionalPart=this.fitnessProgramParticipationRepository.findByClientIdAndFitnessProgramId(cliendId,fpId);
         if(optionalPart.isPresent()){
             var optionalTmp=optionalPart.get();
             if(!isAfter(optionalTmp.getStartDate(),fitnessProgram.getDuration()))
                 optionalTmp.setStartDate(new Date());
+            this.logService.info("Client "+jwtUser.getUsername()+" successfully subscribed to the fitness program.");
             return;
         }
         ClientEntity client = new ClientEntity();
@@ -116,14 +128,17 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
         fpP.setFitnessProgram(fitnessProgram);
         fpP.setStartDate(new Date());
         this.fitnessProgramParticipationRepository.saveAndFlush(fpP);
+        this.logService.info("Client "+jwtUser.getUsername()+" successfully subscribed to the fitness program.");
     }
 
     //ako mi vrati false moze da se prikaze dugme, ako je true ne moze
     @Override
     public boolean isClientParticipatingInFp(Long cliendId, Long fpId, Authentication auth) {
         var jwtUser = (JwtUserDTO) auth.getPrincipal();
-        if (!jwtUser.getId().equals(cliendId))
+        if (!jwtUser.getId().equals(cliendId)) {
+            this.logService.warning("Attempted action on someone else's account. Client:"+jwtUser.getUsername()+".");
             throw new UnauthorizedException();
+        }
         var entity = this.fitnessProgramParticipationRepository.findByClientIdAndFitnessProgramId(cliendId, fpId);
         if (entity.isEmpty())
             return false;
@@ -135,6 +150,7 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
         Date programEndDate = calendar.getTime();
         System.out.println(programEndDate);
         Date currentDate = new Date();
+        this.logService.info("Client "+jwtUser.getUsername()+" has successfully completed the subscription verification");
         return programEndDate.after(currentDate);
     }
 
@@ -162,6 +178,7 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
         entity.setFitnessProgram(fp);
         entity = this.fitnessProgramCommentRepository.saveAndFlush(entity);
         entityManager.refresh(entity);
+        this.logService.info("Client "+request.getRemoteAddr()+" successfully commented on the fitness program");
         return mapper.map(entity, FitnessProgramCommentDTO.class);
 
     }
@@ -182,8 +199,10 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
     @Override
     public List<FitnessProgramDTO> findAllFpForClient(Long id, Authentication auth) {
         var jwtUser = (JwtUserDTO) auth.getPrincipal();
-        if (!jwtUser.getId().equals(id))
+        if (!jwtUser.getId().equals(id)) {
+            this.logService.warning("Attempted action on someone else's account. Client:"+jwtUser.getUsername()+".");
             throw new UnauthorizedException();
+        }
         return this.fitnessProgramRepository.findAllByClientIdAndStatus(id,true).stream()
                 .map(el->mapper.map(el,FitnessProgramDTO.class)).toList();
     }
@@ -192,16 +211,21 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
     public void deleteFp(Long clientId, Long fpId, Authentication auth) {
         var fp=this.fitnessProgramRepository.findById(fpId).orElseThrow(NotFoundException::new);
         var jwtUser = (JwtUserDTO) auth.getPrincipal();
-        if (!jwtUser.getId().equals(fp.getClient().getId()))
+        if (!jwtUser.getId().equals(fp.getClient().getId())) {
+            this.logService.warning("Attempted action on someone else's account. Client:"+jwtUser.getUsername()+".");
             throw new UnauthorizedException();
+        }
         fp.setStatus(false);
+        logService.info("Client "+jwtUser.getUsername()+" has successfully deleted the fitness program.");
     }
 
     @Override
     public List<FitnessProgramDTO> findAllActiveFpForClient(Long id, Authentication auth) {
         var jwtUser = (JwtUserDTO) auth.getPrincipal();
-        if (!jwtUser.getId().equals(id))
+        if (!jwtUser.getId().equals(id)) {
+            this.logService.warning("Attempted action on someone else's account. Client:"+jwtUser.getUsername()+".");
             throw new UnauthorizedException();
+        }
         var participation=this.fitnessProgramParticipationRepository.findAllByClientId(id);
        return participation.stream().filter(el->this.isAfter(el.getStartDate(),el.getFitnessProgram().getDuration())).map(el->mapper.map(el.getFitnessProgram(),FitnessProgramDTO.class)).toList();
     }
@@ -209,8 +233,10 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
     @Override
     public List<FitnessProgramDTO> findAllFinishedFpForClient(Long id, Authentication auth) {
         var jwtUser = (JwtUserDTO) auth.getPrincipal();
-        if (!jwtUser.getId().equals(id))
+        if (!jwtUser.getId().equals(id)) {
+            this.logService.warning("Attempted action on someone else's account. Client:"+jwtUser.getUsername()+".");
             throw new UnauthorizedException();
+        }
         var participation=this.fitnessProgramParticipationRepository.findAllByClientId(id);
         return participation.stream().filter(el->!this.isAfter(el.getStartDate(),el.getFitnessProgram().getDuration())).map(el->mapper.map(el.getFitnessProgram(),FitnessProgramDTO.class)).toList();
     }

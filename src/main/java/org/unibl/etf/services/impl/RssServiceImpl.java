@@ -4,9 +4,11 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.unibl.etf.models.dto.FitnessNewsDTO;
+import org.unibl.etf.services.LogService;
 import org.unibl.etf.services.RssService;
 
 import java.net.URL;
@@ -18,6 +20,16 @@ public class RssServiceImpl implements RssService {
 
     @Value("${rss.link}")
     private String feedUrl;
+
+    private final LogService logService;
+
+    private final HttpServletRequest request;
+
+    public RssServiceImpl(LogService logService, HttpServletRequest request) {
+        this.logService = logService;
+        this.request = request;
+    }
+
     @Override
     public List<FitnessNewsDTO> consumeFeed() {
         List<FitnessNewsDTO> result = new ArrayList<>();
@@ -35,7 +47,7 @@ public class RssServiceImpl implements RssService {
             }
         }
         catch(Exception e){
-            e.printStackTrace();
+            this.logService.error(e.getMessage());
         }
         return result;
     }

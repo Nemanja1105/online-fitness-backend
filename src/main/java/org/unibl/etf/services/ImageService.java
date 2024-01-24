@@ -10,4 +10,7 @@ public interface ImageService {
     Long uploadImage(MultipartFile file)throws IOException;
     ImageDTO downloadImage(Long id)throws IOException;
     void deleteImage(ImageEntity image)throws IOException;
+    String[] getPathById(Long id);
+
+    void deleteImageById(Long id)throws IOException;
 }

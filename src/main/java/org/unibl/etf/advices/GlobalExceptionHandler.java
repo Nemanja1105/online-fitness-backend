@@ -9,12 +9,20 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.unibl.etf.exceptions.*;
+import org.unibl.etf.services.LogService;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler{
+
+    private final LogService logService;
+
+    public GlobalExceptionHandler(LogService logService) {
+        this.logService = logService;
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException exception) {
@@ -66,6 +74,14 @@ public class GlobalExceptionHandler{
     public void handleNotFoundException() {
 
     }
+
+    @ExceptionHandler(IOException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public void handleIOxception(IOException e) {
+        logService.error(e.getMessage());
+    }
+
+
 
 
 }

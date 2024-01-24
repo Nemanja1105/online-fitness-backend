@@ -3,6 +3,7 @@ package org.unibl.etf.services.impl;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.core.io.ClassPathResource;
@@ -14,6 +15,7 @@ import org.unibl.etf.models.dto.ImageDTO;
 import org.unibl.etf.models.entities.ImageEntity;
 import org.unibl.etf.repositories.ImageRepository;
 import org.unibl.etf.services.ImageService;
+import org.unibl.etf.services.LogService;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,13 +29,19 @@ public class ImageServiceImpl implements ImageService {
     private final ImageRepository imageRepository;
     private final ModelMapper mapper;
 
+    private final LogService logService;
+
+    private final HttpServletRequest request;
+
     private File path;
     @PersistenceContext
     private EntityManager entityManager;
 
-    public ImageServiceImpl(ImageRepository imageRepository, ModelMapper mapper) {
+    public ImageServiceImpl(ImageRepository imageRepository, ModelMapper mapper, LogService logService, HttpServletRequest request) {
         this.imageRepository = imageRepository;
         this.mapper = mapper;
+        this.logService = logService;
+        this.request = request;
     }
 
     @PostConstruct
@@ -73,6 +81,17 @@ public class ImageServiceImpl implements ImageService {
         var path = getPath(image);
         File file = new File(path);
         file.delete();
+    }
+
+    public String[] getPathById(Long id){
+        var image = imageRepository.findById(id).orElseThrow(NotFoundException::new);
+        return new String[]{this.getPath(image), image.getName()};
+    }
+
+    @Override
+    public void deleteImageById(Long id) throws IOException {
+        var image = imageRepository.findById(id).orElseThrow(NotFoundException::new);
+        this.deleteImage(image);
     }
 
     private String getPath(ImageEntity image) {

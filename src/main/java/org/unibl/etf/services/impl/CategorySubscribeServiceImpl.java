@@ -17,6 +17,7 @@ import org.unibl.etf.repositories.ClientRepository;
 import org.unibl.etf.repositories.FitnessProgramRepository;
 import org.unibl.etf.services.CategorySubscribeService;
 import org.unibl.etf.services.EmailService;
+import org.unibl.etf.services.LogService;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -35,6 +36,8 @@ public class CategorySubscribeServiceImpl implements CategorySubscribeService {
     private final FitnessProgramRepository fitnessProgramRepository;
 
     private final EmailService emailService;
+
+    private final LogService logService;
 
     @Scheduled(cron="0 0 21 * * *")//9 navece
     public void sendEmailNotification(){
@@ -58,34 +61,42 @@ public class CategorySubscribeServiceImpl implements CategorySubscribeService {
         }
     }
 
-    public CategorySubscribeServiceImpl(CategorySubscribeRepository categorySubscribeRepository, CategoryRepository categoryRepository, ClientRepository clientRepository, FitnessProgramRepository fitnessProgramRepository, EmailService emailService) {
+    public CategorySubscribeServiceImpl(CategorySubscribeRepository categorySubscribeRepository, CategoryRepository categoryRepository, ClientRepository clientRepository, FitnessProgramRepository fitnessProgramRepository, EmailService emailService, LogService logService) {
         this.categorySubscribeRepository = categorySubscribeRepository;
         this.categoryRepository = categoryRepository;
         this.clientRepository = clientRepository;
         this.fitnessProgramRepository = fitnessProgramRepository;
         this.emailService = emailService;
+        this.logService = logService;
     }
 
     @Override
     public List<CategorySubscribeDTO> findAllForClient(Long id, Authentication auth) {
         var jwtUser = (JwtUserDTO) auth.getPrincipal();
-        if (!jwtUser.getId().equals(id))
+        if (!jwtUser.getId().equals(id)) {
+            this.logService.warning("Attempted action on someone else's account. Client:"+jwtUser.getUsername()+".");
             throw new UnauthorizedException();
+        }
         return this.categorySubscribeRepository.getAllCategoriesWithSubscriptionStatus(id);
     }
 
     @Override
     public void changeSubscribeForClient(Long categoryId, Long clientId, Authentication auth) {
         var jwtUser = (JwtUserDTO) auth.getPrincipal();
-        if (!jwtUser.getId().equals(clientId))
+        if (!jwtUser.getId().equals(clientId)) {
+            this.logService.warning("Attempted action on someone else's account. Client:"+jwtUser.getUsername()+".");
             throw new UnauthorizedException();
-        if(!this.categoryRepository.existsById(categoryId) || !this.clientRepository.existsById(clientId))
+        }
+        if(!this.categoryRepository.existsById(categoryId) || !this.clientRepository.existsById(clientId)) {
+            this.logService.info("Client "+jwtUser.getUsername()+" is trying to subscribe to a non-existent category");
             throw new NotFoundException();
+        }
 
         var categorySubsOptional=this.categorySubscribeRepository.findByCategoryIdAndClientId(categoryId,clientId);
         if(categorySubsOptional.isPresent()){
             var tmp=categorySubsOptional.get();
             this.categorySubscribeRepository.delete(tmp);//brisemo pretplatu ako postoji
+            this.logService.info("Client "+jwtUser.getUsername()+" has successfully unsubscribed from the category");
         }
         else{
             ClientEntity client=new ClientEntity(); client.setId(clientId);
@@ -95,6 +106,7 @@ public class CategorySubscribeServiceImpl implements CategorySubscribeService {
             categorySubscribeEntity.setCategory(category);
             categorySubscribeEntity.setClient(client);
             this.categorySubscribeRepository.saveAndFlush(categorySubscribeEntity);
+            this.logService.info("Client "+jwtUser.getUsername()+" has successfully subscribed on the category");
         }
     }
 }
