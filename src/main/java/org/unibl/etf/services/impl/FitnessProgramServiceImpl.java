@@ -101,7 +101,7 @@ public class FitnessProgramServiceImpl implements FitnessProgramService {
 
     @Override
     public FitnessProgramDTO findById(Long id) {
-        var entity = this.fitnessProgramRepository.findById(id).orElseThrow(NotFoundException::new);
+        var entity = this.fitnessProgramRepository.findByIdAndStatus(id,true).orElseThrow(NotFoundException::new);
         return mapper.map(entity, FitnessProgramDTO.class);
     }
 

@@ -61,7 +61,7 @@ public class GlobalExceptionHandler{
     @ExceptionHandler(AccountBlockedException.class)
     public ResponseEntity<Object> handleNotApprovedException(AccountBlockedException e)
     {
-        return new ResponseEntity<>(e.getMessage(),HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);//403 prirodno zbog greske 404 stavljam
     }
 
     @ExceptionHandler(PasswordMismatchException.class)
